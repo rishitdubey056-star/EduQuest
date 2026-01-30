@@ -1,0 +1,8 @@
+{
+  "name": "EduQuest AI - Ultimate Study Companion",
+  "description": "A comprehensive study platform for CBSE, NCERT, and other boards. Generate custom MCQ tests, get detailed solutions, and consult an AI teacher with image support.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
