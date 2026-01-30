@@ -10,7 +10,7 @@ interface AITeacherProps {
 const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: 'Hi! I am Theo AI, your study companion. Ready to level up? Ask me anything or drop a photo of your textbook!' }
+    { role: 'model', text: 'Sup! I am Theo AI, your ultimate study guide. Ready to level up your aura points? Drop a question or a photo of your book! GIF_CODE: 3o7TKSjPqcK9Uj77W0' }
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -34,15 +34,14 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
     try {
       const responseText = await askTeacher(inputText, funMode, imgBase64);
       setMessages(prev => [...prev, { role: 'model', text: responseText }]);
-    } catch (err) {
-      setMessages(prev => [...prev, { role: 'model', text: "Oof, my brain lagged. Try sending that again, fam." }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: 'model', text: err.message || "Oof, my brain lagged. Try sending that again, fam." }]);
     } finally {
       setIsTyping(false);
     }
   };
 
   const renderMessageContent = (text: string) => {
-    // Regex to capture the ID from GIF_CODE: [ID]
     const gifMarker = /GIF_CODE:\s*([a-zA-Z0-9]+)/i;
     const match = text.match(gifMarker);
     const mainText = text.replace(gifMarker, '').trim();
@@ -54,18 +53,23 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
           {mainText}
         </div>
         {gifId && (
-          <div className="mt-4 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100 animate-in zoom-in-95 duration-500 max-w-full group">
+          <div className="mt-4 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100 animate-in zoom-in-95 duration-500 max-w-full">
             <img 
               src={`https://i.giphy.com/${gifId}.gif`} 
-              alt="Theo's Vibe Check" 
+              alt="Meme" 
+              referrerPolicy="no-referrer"
               className="w-full h-auto object-cover max-h-[280px] block"
               loading="lazy"
               onError={(e) => {
-                // Final fallback if link is broken
-                (e.target as HTMLImageElement).src = "https://i.giphy.com/3o7TKSjPqcK9Uj77W0.gif";
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes('media.giphy.com')) {
+                   target.src = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+                } else {
+                   target.src = "https://i.giphy.com/3o7TKSjPqcK9Uj77W0.gif";
+                }
               }}
             />
-            <div className="bg-white/95 p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-t border-slate-50 transition-colors group-hover:text-indigo-500">
+            <div className="bg-white/95 p-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] border-t border-slate-50">
               THEO'S VIBE CHECK
             </div>
           </div>
@@ -95,13 +99,13 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
       {isOpen && (
         <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-[430px] sm:h-[min(820px,88vh)] bg-white sm:rounded-[3.5rem] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.5)] z-[95] flex flex-col overflow-hidden animate-in slide-in-from-bottom-12 duration-500 border border-slate-100">
           
-          {/* Header */}
+          {/* Header matching screenshot */}
           <div className={`p-6 sm:p-7 flex items-center justify-between shadow-lg relative z-10 transition-all duration-500 ${funMode ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-indigo-600'}`}>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl border border-white/20 shadow-inner">
-                {funMode ? '🔥' : '🎓'}
+                <span role="img" aria-label="fire">🔥</span>
               </div>
-              <div className="text-white min-w-0">
+              <div className="text-white min-w-0 text-left">
                 <h3 className="font-black text-2xl tracking-tighter truncate leading-none mb-1">Theo AI</h3>
                 <p className="text-[11px] font-black opacity-95 uppercase tracking-[0.25em] leading-none">
                   {funMode ? "VIBE CHECK: PASSED" : "ACADEMIC MENTOR"}
@@ -113,7 +117,6 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
             </button>
           </div>
 
-          {/* Body */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-8 bg-slate-50/70 custom-scrollbar">
             {messages.map((m, idx) => (
               <div key={idx} className={`flex w-full animate-in fade-in duration-400 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -128,8 +131,8 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
                     ? (funMode ? 'bg-purple-600 text-white border-purple-400 rounded-[2rem] rounded-tr-none' : 'bg-indigo-600 text-white border-indigo-400 rounded-[2rem] rounded-tr-none') 
                     : 'bg-white text-slate-900 border-slate-100 rounded-[2rem] rounded-tl-none shadow-indigo-100/30'
                   }`}>
-                    {m.image && <img src={m.image} className="mb-4 rounded-3xl max-h-80 w-full object-cover border-4 border-white/10 shadow-2xl" alt="Input" />}
-                    {renderMessageContent(m.text)}
+                    {m.image && <img src={m.image} className="mb-4 rounded-3xl max-h-80 w-full object-cover border-4 border-white/10 shadow-2xl" alt="Upload" />}
+                    {m.role === 'user' ? <p className="text-[16px] font-bold leading-relaxed">{m.text}</p> : renderMessageContent(m.text)}
                   </div>
                 </div>
               </div>
@@ -143,13 +146,13 @@ const AITeacher: React.FC<AITeacherProps> = ({ funMode }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer Input */}
+          {/* Footer Input matching screenshot */}
           <div className="p-5 sm:p-8 bg-white border-t border-slate-50 pb-safe">
             <div className={`flex items-center gap-3 bg-slate-100 border-2 rounded-[2.5rem] p-2.5 transition-all duration-500 focus-within:ring-[12px] ${funMode ? 'focus-within:ring-purple-500/5 focus-within:border-purple-400 border-slate-100' : 'focus-within:ring-indigo-500/5 focus-within:border-indigo-500 border-slate-100'}`}>
               <button 
                 onClick={() => fileInputRef.current?.click()} 
                 className="p-4 text-slate-500 bg-white rounded-[1.5rem] shadow-sm border border-slate-200 active:scale-90 hover:text-indigo-600 transition-all"
-                title="Upload Photo"
+                title="Camera"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" strokeWidth={3} /></svg>
               </button>

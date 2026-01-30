@@ -11,7 +11,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
   const [config, setConfig] = useState<Partial<QuizConfig>>({
     classLevel: '10',
     board: 'CBSE',
-    subject: '',
+    subject: 'English',
     scope: 'Chapter',
     chapter: '',
     numQuestions: 10,
@@ -49,15 +49,19 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
       if (config.board && config.classLevel && config.subject) {
         setLoadingChapters(true);
         setAvailableChapters([]); 
-        const list = await getChaptersList(config.board, config.classLevel, config.subject);
-        if (!ignore) {
-          setAvailableChapters(list);
-          setLoadingChapters(false);
-          if (list.length > 0) {
-            setConfig(prev => ({ ...prev, chapter: list[0], scope: 'Chapter' }));
-          } else {
-            setConfig(prev => ({ ...prev, chapter: '', scope: 'Full Book' }));
+        try {
+          const list = await getChaptersList(config.board, config.classLevel, config.subject);
+          if (!ignore) {
+            setAvailableChapters(list);
+            setLoadingChapters(false);
+            if (list.length > 0) {
+              setConfig(prev => ({ ...prev, chapter: list[0], scope: 'Chapter' }));
+            } else {
+              setConfig(prev => ({ ...prev, chapter: '', scope: 'Full Book' }));
+            }
           }
+        } catch (e) {
+          if (!ignore) setLoadingChapters(false);
         }
       }
     };
@@ -73,9 +77,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
 
   return (
     <div className="max-w-4xl mx-auto w-full px-4 mb-20 animate-in fade-in slide-in-up duration-700">
-      <div className="bg-white rounded-[2.5rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-slate-100">
+      <div className="bg-white rounded-[3rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-slate-100">
         
-        <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-800 p-10 sm:p-20 text-white relative overflow-hidden">
+        {/* Header Gradient matching screenshot */}
+        <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-800 p-10 sm:p-20 text-white relative overflow-hidden text-left">
           <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-[100px]"></div>
           <div className="relative z-10">
             <h2 className="text-5xl sm:text-7xl font-black mb-4 tracking-tighter">Study Portal</h2>
@@ -83,7 +88,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
           </div>
         </div>
 
-        <div className="p-8 sm:p-20 space-y-16">
+        <div className="p-8 sm:p-20 space-y-16 text-left">
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16">
             <div className="space-y-6">
@@ -203,7 +208,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
           <div className="pt-12 space-y-6 border-t border-slate-50">
             <button 
               onClick={() => handleAction('quiz')}
-              className="group w-full py-8 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 text-white rounded-[2.5rem] font-black text-2xl shadow-[0_25px_80px_-15px_rgba(79,70,229,0.4)] hover:brightness-110 active:scale-[0.97] transition-all flex items-center justify-center gap-5"
+              className="group w-full py-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-[2.5rem] font-black text-2xl shadow-[0_25px_80px_-15px_rgba(219,39,119,0.4)] hover:brightness-110 active:scale-[0.97] transition-all flex items-center justify-center gap-5"
             >
               <span>🚀 Launch MCQ Test</span>
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
