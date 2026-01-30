@@ -47,16 +47,11 @@ export interface Flashcard {
   hint?: string;
 }
 
-export interface UserAccount {
-  name: string;
-  email: string;
-  photo?: string;
-  grade: ClassLevel;
-  board: BoardType;
-  history: QuizResult[];
-  streak: number;
-  points: number;
-  lastActive?: number;
+export interface CardMastery {
+  id: string; // Hash of front text
+  level: number; // 0 to 5
+  nextReview: number; // Timestamp
+  lastInterval: number; // Days
 }
 
 export interface ChatMessage {
@@ -70,4 +65,17 @@ export interface LectureData {
   content: string; // Markdown
   keyPoints: string[];
   flashcards: Flashcard[];
+}
+
+// Fixed missing UserAccount interface required by Dashboard, ProfileSetup, and dataService
+export interface UserAccount {
+  name: string;
+  email: string;
+  photo: string;
+  grade: ClassLevel;
+  board: BoardType;
+  history: QuizResult[];
+  streak: number;
+  points: number;
+  lastActive: number;
 }

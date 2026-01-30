@@ -1,18 +1,16 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { BoardType, ClassLevel, QuizConfig, TestScope, Difficulty, UserAccount } from '../types';
+import { BoardType, ClassLevel, QuizConfig, TestScope, Difficulty } from '../types';
 import { getChaptersList } from '../services/geminiService';
 
 interface SetupWizardProps {
   onStart: (config: QuizConfig, mode: 'quiz' | 'lecture' | 'flashcards') => void;
-  initialValues?: Partial<UserAccount>;
 }
 
-const SetupWizard: React.FC<SetupWizardProps> = ({ onStart, initialValues }) => {
-  // Initialize configuration state, pre-filling class and board from user account if provided
+const SetupWizard: React.FC<SetupWizardProps> = ({ onStart }) => {
   const [config, setConfig] = useState<Partial<QuizConfig>>({
-    classLevel: initialValues?.grade || '10',
-    board: initialValues?.board || 'CBSE',
+    classLevel: '10',
+    board: 'CBSE',
     subject: '',
     scope: 'Chapter',
     chapter: '',
@@ -39,14 +37,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart, initialValues }) => 
     ];
   }, [config.classLevel]);
 
-  // Handle Subject initialization when class changes
   useEffect(() => {
     if (!subjects.includes(config.subject || '')) {
       setConfig(prev => ({ ...prev, subject: subjects[0] }));
     }
   }, [subjects, config.subject]);
 
-  // Fetch chapters when Board, Class, or Subject changes
   useEffect(() => {
     let ignore = false;
     const fetchChapters = async () => {
@@ -69,50 +65,57 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart, initialValues }) => 
     return () => { ignore = true; };
   }, [config.board, config.classLevel, config.subject]);
 
-  const difficulties: Difficulty[] = ['Easy', 'Intermediate', 'Advanced', 'Expert'];
-
   const handleAction = (mode: 'quiz' | 'lecture' | 'flashcards') => {
-    if (!config.subject) {
-      alert("Please select a subject.");
-      return;
-    }
-    if (config.scope === 'Chapter' && !config.chapter) {
-      alert("Please select a chapter.");
-      return;
-    }
+    if (!config.subject) { alert("Please select a subject."); return; }
+    if (config.scope === 'Chapter' && !config.chapter) { alert("Please select a chapter."); return; }
     onStart(config as QuizConfig, mode);
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-2 sm:px-4">
-      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-        <div className="bg-indigo-700 p-8 sm:p-10 text-white">
-          <h2 className="text-3xl font-black mb-2">Study Portal</h2>
-          <p className="opacity-80 text-sm font-medium">Step-by-step session configuration.</p>
+    <div className="max-w-4xl mx-auto w-full px-4 mb-20 animate-in fade-in slide-in-up duration-700">
+      <div className="bg-white rounded-[2.5rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-slate-100">
+        
+        <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-800 p-10 sm:p-20 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-[100px]"></div>
+          <div className="relative z-10">
+            <h2 className="text-5xl sm:text-7xl font-black mb-4 tracking-tighter">Study Portal</h2>
+            <p className="opacity-90 text-[11px] font-black uppercase tracking-[0.4em] ml-1">Configure Your Intelligence Engine</p>
+          </div>
         </div>
 
-        <div className="p-6 sm:p-10 space-y-8">
-          {/* Step 1 & 2: Class and Board */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 1: Select Class</label>
-              <select 
-                value={config.classLevel}
-                onChange={(e) => setConfig({...config, classLevel: e.target.value as ClassLevel})}
-                className="w-full px-4 py-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-indigo-500 font-bold text-gray-700 outline-none transition-all"
-              >
-                {classes.map(c => <option key={c} value={c}>Grade {c}</option>)}
-              </select>
+        <div className="p-8 sm:p-20 space-y-16">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 sm:gap-16">
+            <div className="space-y-6">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Grade Level</label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                {classes.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setConfig({...config, classLevel: c})}
+                    className={`py-4 rounded-2xl text-base font-black transition-all border-2 ${
+                      config.classLevel === c 
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-100 scale-110 z-10' 
+                      : 'bg-slate-50 border-slate-50 text-slate-500 hover:border-slate-200 active:scale-95'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 2: Select Board</label>
-              <div className="grid grid-cols-2 gap-2">
+            
+            <div className="space-y-6">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Education Board</label>
+              <div className="grid grid-cols-2 gap-4">
                 {boards.map(b => (
                   <button
                     key={b}
                     onClick={() => setConfig({...config, board: b})}
-                    className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 ${
-                      config.board === b ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-100 text-gray-500 hover:border-indigo-100'
+                    className={`py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all border-2 ${
+                      config.board === b 
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-100 scale-105 z-10' 
+                      : 'bg-slate-50 border-slate-50 text-slate-500 hover:border-slate-200 active:scale-95'
                     }`}
                   >
                     {b}
@@ -122,110 +125,97 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onStart, initialValues }) => 
             </div>
           </div>
 
-          {/* Step 3 & 4: Subject and Scope */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 3: Select Subject</label>
-              <select 
-                value={config.subject}
-                onChange={(e) => setConfig({...config, subject: e.target.value})}
-                className="w-full px-4 py-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-indigo-500 font-bold text-gray-700 outline-none transition-all"
-              >
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 4: Chapter or Full Book</label>
-              <select 
-                disabled={loadingChapters}
-                value={config.scope === 'Full Book' ? 'FULL_BOOK' : config.chapter}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === 'FULL_BOOK') setConfig({...config, scope: 'Full Book', chapter: ''});
-                  else setConfig({...config, scope: 'Chapter', chapter: val});
-                }}
-                className={`w-full px-4 py-4 rounded-2xl border-2 transition-all font-bold ${
-                  loadingChapters ? 'bg-gray-100 border-gray-100 text-gray-400' : 'bg-gray-50 border-gray-100 focus:border-indigo-500 text-gray-700'
-                }`}
-              >
-                <option value="FULL_BOOK">Entire Book Test</option>
-                {!loadingChapters && availableChapters.map(ch => (
-                  <option key={ch} value={ch}>{ch}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Step 5 & 6: Q Count and Refresher */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 5: Question Count</label>
-              <input 
-                type="number"
-                min="5"
-                max="50"
-                value={config.numQuestions}
-                onChange={(e) => setConfig({...config, numQuestions: parseInt(e.target.value) || 5})}
-                className="w-full px-4 py-4 rounded-2xl bg-gray-50 border-2 border-gray-100 focus:border-indigo-500 font-bold text-gray-700 outline-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Step 6: Refresher Questions?</label>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setConfig({...config, useRefresher: true})}
-                  className={`flex-1 py-4 rounded-xl font-bold transition-all border-2 ${config.useRefresher ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-gray-100 text-gray-500'}`}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject</label>
+              <div className="relative group">
+                <select 
+                  value={config.subject}
+                  onChange={(e) => setConfig({...config, subject: e.target.value})}
+                  className="w-full px-8 py-6 rounded-[2rem] bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white font-black text-slate-700 outline-none transition-all shadow-inner appearance-none relative z-10"
                 >
-                  Yes
-                </button>
-                <button 
-                  onClick={() => setConfig({...config, useRefresher: false})}
-                  className={`flex-1 py-4 rounded-xl font-bold transition-all border-2 ${!config.useRefresher ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-gray-100 text-gray-500'}`}
+                  {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none z-20">
+                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth={3} /></svg>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Topic Scope</label>
+              <div className="relative group">
+                <select 
+                  disabled={loadingChapters}
+                  value={config.scope === 'Full Book' ? 'FULL_BOOK' : config.chapter}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'FULL_BOOK') setConfig({...config, scope: 'Full Book', chapter: ''});
+                    else setConfig({...config, scope: 'Chapter', chapter: val});
+                  }}
+                  className={`w-full px-8 py-6 rounded-[2rem] border-2 transition-all font-black shadow-inner appearance-none relative z-10 ${
+                    loadingChapters ? 'bg-slate-100 border-slate-100 text-slate-300' : 'bg-slate-50 border-slate-100 focus:border-indigo-500 focus:bg-white text-slate-700'
+                  }`}
                 >
-                  No
-                </button>
+                  <option value="FULL_BOOK">Entire Book Curriculum</option>
+                  {!loadingChapters && availableChapters.map(ch => (
+                    <option key={ch} value={ch}>{ch}</option>
+                  ))}
+                </select>
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none z-20">
+                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth={3} /></svg>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Step 7: Difficulty */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Difficulty</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {difficulties.map(d => (
-                <button
-                  key={d}
-                  onClick={() => setConfig({ ...config, difficulty: d })}
-                  className={`py-3 rounded-xl text-[10px] font-black uppercase transition-all border-2 ${
-                    config.difficulty === d ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white border-gray-100 text-gray-500'
-                  }`}
-                >
-                  {d}
-                </button>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Questions Count</label>
+              <div className="relative">
+                <input 
+                  type="number" min="5" max="50"
+                  value={config.numQuestions}
+                  onChange={(e) => setConfig({...config, numQuestions: parseInt(e.target.value) || 5})}
+                  className="w-full px-8 py-6 rounded-[2rem] bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 focus:bg-white font-black text-slate-700 shadow-inner"
+                />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Concept Refresher</label>
+              <div className="flex gap-4 h-[72px]">
+                {[true, false].map(val => (
+                  <button 
+                    key={val ? 'Y' : 'N'}
+                    onClick={() => setConfig({...config, useRefresher: val})}
+                    className={`flex-1 rounded-[1.75rem] font-black text-xs uppercase tracking-[0.25em] border-2 transition-all ${
+                      config.useRefresher === val 
+                      ? 'bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-100 scale-105' 
+                      : 'bg-slate-50 border-slate-50 text-slate-400 hover:border-slate-200'
+                    }`}
+                  >
+                    {val ? 'Active' : 'Off'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="grid grid-cols-1 gap-4 pt-6">
+          <div className="pt-12 space-y-6 border-t border-slate-50">
             <button 
               onClick={() => handleAction('quiz')}
-              className="w-full py-6 bg-indigo-600 text-white rounded-3xl font-black text-xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 active:scale-95"
+              className="group w-full py-8 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 text-white rounded-[2.5rem] font-black text-2xl shadow-[0_25px_80px_-15px_rgba(79,70,229,0.4)] hover:brightness-110 active:scale-[0.97] transition-all flex items-center justify-center gap-5"
             >
-              🚀 Start MCQ Test
+              <span>🚀 Launch MCQ Test</span>
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" /></svg>
+              </div>
             </button>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => handleAction('lecture')}
-                className="flex-1 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black hover:bg-indigo-50 transition-all"
-              >
-                📖 Study Lecture
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <button onClick={() => handleAction('lecture')} className="py-6 bg-white border-2 border-slate-100 text-slate-800 rounded-[2rem] font-black text-base hover:bg-slate-50 hover:border-indigo-300 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-slate-100/50">
+                <span>📖 Study Theory</span>
               </button>
-              <button 
-                onClick={() => handleAction('flashcards')}
-                className="flex-1 py-4 bg-purple-100 text-purple-700 rounded-2xl font-black hover:bg-purple-200 transition-all"
-              >
-                🃏 Flashcards
+              <button onClick={() => handleAction('flashcards')} className="py-6 bg-white border-2 border-slate-100 text-slate-800 rounded-[2rem] font-black text-base hover:bg-slate-50 hover:border-purple-300 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-slate-100/50">
+                <span>🃏 Flashcards</span>
               </button>
             </div>
           </div>
